@@ -422,5 +422,106 @@ successText: {
   fontSize: 18,
   fontWeight: '700',
 },
+// Estilos para detección de botellas
+frameBottleDetected: {
+  borderColor: '#3b82f6', // Azul cuando se detecta botella
+},
 
+frameComplete: {
+  borderColor: '#22c55e', // Verde cuando ambos están detectados
+  shadowColor: '#22c55e',
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.5,
+  shadowRadius: 20,
+},
+
+// Cuadros de detección de objetos
+detectionBox: {
+  position: 'absolute',
+  borderWidth: 3,
+  borderColor: '#22c55e',
+  backgroundColor: 'rgba(34, 197, 94, 0.1)',
+  borderRadius: 8,
+},
+
+detectionLabel: {
+  position: 'absolute',
+  top: -25,
+  left: 0,
+  backgroundColor: '#22c55e',
+  color: '#ffffff',
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 4,
+  fontSize: 12,
+  fontWeight: '700',
+},
+
+// Contenedor de estado dual
+statusContainer: {
+  flexDirection: 'row',
+  gap: 20,
+  marginBottom: 16,
+  justifyContent: 'center',
+},
+
+statusItem: {
+  alignItems: 'center',
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  borderRadius: 12,
+  borderWidth: 2,
+  borderColor: 'rgba(255, 255, 255, 0.3)',
+  minWidth: 100,
+},
+
+statusItemSuccess: {
+  backgroundColor: 'rgba(34, 197, 94, 0.2)',
+  borderColor: '#22c55e',
+},
+
+statusEmoji: {
+  fontSize: 32,
+  marginBottom: 4,
+},
+
+statusText: {
+  color: '#ffffff',
+  fontSize: 12,
+  fontWeight: '600',
+  textTransform: 'uppercase',
+},
+
+// Pantalla de carga del modelo
+loadingContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#000000',
+},
+
+loadingText: {
+  color: '#ffffff',
+  fontSize: 18,
+  fontWeight: '600',
+  marginTop: 16,
+},
+
+modelLoadingText: {
+  color: '#6b7280',
+  fontSize: 12,
+  marginTop: 12,
+  textAlign: 'center',
+},
+scanImage: {
+  width: 80,
+  height: 80,
+  marginBottom: 20,
+},
+buttonIcon: {
+  width: 24,
+  height: 24,
+  marginRight: 8,
+}
 });

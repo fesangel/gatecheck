@@ -1,62 +1,69 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useRef, useState } from 'react';
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Image,
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { styles } from '../../styles/styles';
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { styles } from "../../styles/styles";
 
 // Simula datos de botellas escaneadas con diferentes condiciones
 const BOTTLE_DATABASE = {
-  '7501234567890': {
-    producto: 'Glenlivet 12',
-    aerolinea: 'LX',
-    sello: 'Sellado',
-    nivel: '> 80%',
-    condicion: 'Excelente/Intacto',
-    action: 'Keep',
-    reason: 'La botella cumple con todos los estándares de calidad: sello intacto, nivel óptimo y condición excelente.',
+  "7501234567890": {
+    producto: "Glenlivet 12",
+    aerolinea: "LX",
+    sello: "Sellado",
+    nivel: "> 80%",
+    condicion: "Excelente/Intacto",
+    action: "Keep",
+    reason:
+      "La botella cumple con todos los estándares de calidad: sello intacto, nivel óptimo y condición excelente.",
   },
-  '7501234567891': {
-    producto: 'Johnnie Walker Black',
-    aerolinea: 'LX',
-    sello: 'Resellado',
-    nivel: '60%-80%',
-    condicion: 'Aceptable/Ligeramente Dañado',
-    action: 'Refill',
-    reason: 'La regla LX requiere rellenar porque el sello fue resellado y el nivel está entre 60%-80%.',
+  "7501234567891": {
+    producto: "Johnnie Walker Black",
+    aerolinea: "LX",
+    sello: "Resellado",
+    nivel: "60%-80%",
+    condicion: "Aceptable/Ligeramente Dañado",
+    action: "Refill",
+    reason:
+      "La regla LX requiere rellenar porque el sello fue resellado y el nivel está entre 60%-80%.",
   },
-  '7501234567892': {
-    producto: 'Absolut Vodka',
-    aerolinea: 'LX',
-    sello: 'Abierto',
-    nivel: '< 60%',
-    condicion: 'Pobre/Muy Dañado',
-    action: 'Replace',
-    reason: 'La botella requiere reemplazo debido a que el sello está abierto o la condición visual es muy dañada, según las reglas de seguridad del cliente.',
+  "7501234567892": {
+    producto: "Absolut Vodka",
+    aerolinea: "LX",
+    sello: "Abierto",
+    nivel: "< 60%",
+    condicion: "Pobre/Muy Dañado",
+    action: "Replace",
+    reason:
+      "La botella requiere reemplazo debido a que el sello está abierto o la condición visual es muy dañada, según las reglas de seguridad del cliente.",
   },
-  '7501234567893': {
-    producto: 'Hennessy VS',
-    aerolinea: 'LX',
-    sello: 'Sellado',
-    nivel: '100%',
-    condicion: 'Excelente/Intacto',
-    action: 'Keep',
-    reason: 'La botella cumple con todos los estándares de calidad: sello intacto, nivel óptimo y condición excelente.',
+  "7501234567893": {
+    producto: "Hennessy VS",
+    aerolinea: "LX",
+    sello: "Sellado",
+    nivel: "100%",
+    condicion: "Excelente/Intacto",
+    action: "Keep",
+    reason:
+      "La botella cumple con todos los estándares de calidad: sello intacto, nivel óptimo y condición excelente.",
   },
-  '7501234567894': {
-    producto: 'Bacardi Rum',
-    aerolinea: 'LX',
-    sello: 'Resellado',
-    nivel: '60%-80%',
-    condicion: 'Aceptable/Ligeramente Dañado',
-    action: 'Refill',
-    reason: 'La regla LX requiere rellenar porque el nivel está entre 60%-80% y la condición es aceptable.',
+  "7501234567894": {
+    producto: "Bacardi Rum",
+    aerolinea: "LX",
+    sello: "Resellado",
+    nivel: "60%-80%",
+    condicion: "Aceptable/Ligeramente Dañado",
+    action: "Refill",
+    reason:
+      "La regla LX requiere rellenar porque el nivel está entre 60%-80% y la condición es aceptable.",
   },
 };
 
@@ -67,8 +74,10 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [scannedCode, setScannedCode] = useState(null);
   const [scanSuccess, setScanSuccess] = useState(false);
+  const [bottleDetected, setBottleDetected] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
+  const detectionTimer = useRef(null);
 
   const handleInitiateScan = async () => {
     if (!permission) {
@@ -79,9 +88,9 @@ export default function App() {
       const { granted } = await requestPermission();
       if (!granted) {
         Alert.alert(
-          'Permiso Requerido',
-          'Se necesita acceso a la cámara para escanear botellas.',
-          [{ text: 'OK' }]
+          "Permiso Requerido",
+          "Se necesita acceso a la cámara para escanear botellas.",
+          [{ text: "OK" }]
         );
         return;
       }
@@ -89,119 +98,138 @@ export default function App() {
 
     setShowCamera(true);
     setScanning(true);
+
+    // Simular detección de botella después de 2 segundos
+    detectionTimer.current = setTimeout(() => {
+      console.log("🍾 Botella detectada (simulación)");
+      setBottleDetected(true);
+    }, 2000);
   };
 
   const handleBarcodeScanned = ({ type, data }) => {
     if (scannedCode === data) {
-      return; // Evitar escaneos duplicados
+      return;
     }
 
-    console.log('=== CÓDIGO ESCANEADO ===');
-    console.log('Tipo:', type);
-    console.log('Datos:', data);
-    console.log('========================');
+    console.log("=== CÓDIGO ESCANEADO ===");
+    console.log("Tipo:", type);
+    console.log("Datos:", data);
+    console.log("========================");
 
     setScannedCode(data);
     setScanSuccess(true);
-    setScanning(false);
 
-    // Vibración de éxito (si está disponible)
-    // Vibration.vibrate(100);
-
-    // Buscar en la base de datos
     const bottleData = BOTTLE_DATABASE[data];
 
     if (bottleData) {
-      console.log('✓ Botella encontrada en base de datos:', bottleData.producto);
-      
-      // Mostrar estado de éxito por 1 segundo antes de procesar
+      console.log(
+        "✓ Botella encontrada en base de datos:",
+        bottleData.producto
+      );
+
+      // Verificar si la botella ya fue detectada
+      if (bottleDetected) {
+        console.log("✓✓ Código Y botella detectados - Proceso completo");
+        setScanning(false);
+        setTimeout(() => {
+          setResult(bottleData);
+          setShowCamera(false);
+          setScanSuccess(false);
+          setScannedCode(null);
+          setBottleDetected(false);
+        }, 1000);
+      } else {
+        console.log("⚠ Esperando detección visual de la botella...");
+        // Forzar detección después de 1 segundo
+        setTimeout(() => {
+          if (!bottleDetected) {
+            console.log("🍾 Botella detectada (forzado)");
+            setBottleDetected(true);
+            setScanning(false);
+            setTimeout(() => {
+              setResult(bottleData);
+              setShowCamera(false);
+              setScanSuccess(false);
+              setScannedCode(null);
+              setBottleDetected(false);
+            }, 1000);
+          }
+        }, 1000);
+      }
+    } else {
+      console.log("✗ Código no encontrado en base de datos:", data);
+
+      // Avanzar a pantalla de resultado mostrando el código escaneado (datos mínimos)
+      setScanning(false);
       setTimeout(() => {
-        setResult(bottleData);
+        setResult({
+          producto: data,
+          aerolinea: "N/D",
+          sello: "N/D",
+          nivel: "N/D",
+          condicion: "No registrado",
+          action: "Discard",
+          reason: "Producto no registrado en la base de datos.",
+        });
         setShowCamera(false);
         setScanSuccess(false);
         setScannedCode(null);
-      }, 1000);
-    } else {
-      console.log('✗ Código no encontrado en base de datos');
-      
-      // Mostrar alerta y permitir reintento
-      setTimeout(() => {
-        Alert.alert(
-          'Producto No Encontrado',
-          `El código ${data} no está registrado en la base de datos.`,
-          [
-            {
-              text: 'Reintentar',
-              onPress: () => {
-                setScanSuccess(false);
-                setScannedCode(null);
-                setScanning(true);
-              },
-            },
-            {
-              text: 'Cancelar',
-              onPress: handleCancelScan,
-              style: 'cancel',
-            },
-          ]
-        );
-      }, 1000);
+        setBottleDetected(false);
+      }, 500);
     }
   };
 
-  const handleTakePhoto = async () => {
-    if (cameraRef.current) {
-      setProcessing(true);
-
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-        });
-
-        console.log('Foto tomada:', photo.uri);
-
+  // Verificar si ambos están detectados
+  useEffect(() => {
+    if (scanSuccess && bottleDetected && scannedCode) {
+      const bottleData = BOTTLE_DATABASE[scannedCode];
+      if (bottleData) {
+        console.log("✓✓ Código Y botella detectados - Proceso completo");
+        setScanning(false);
         setTimeout(() => {
-          const codes = Object.keys(BOTTLE_DATABASE);
-          const randomCode = codes[Math.floor(Math.random() * codes.length)];
-          const bottleData = BOTTLE_DATABASE[randomCode];
-
           setResult(bottleData);
-          setProcessing(false);
           setShowCamera(false);
-        }, 2000);
-      } catch (error) {
-        console.error('Error al tomar foto:', error);
-        Alert.alert('Error', 'No se pudo tomar la foto. Intente nuevamente.');
-        setProcessing(false);
+          setScanSuccess(false);
+          setScannedCode(null);
+          setBottleDetected(false);
+        }, 1000);
       }
     }
-  };
+  }, [scanSuccess, bottleDetected, scannedCode]);
 
   const handleCancelScan = () => {
+    if (detectionTimer.current) {
+      clearTimeout(detectionTimer.current);
+    }
     setShowCamera(false);
     setScanning(false);
     setProcessing(false);
     setScanSuccess(false);
     setScannedCode(null);
+    setBottleDetected(false);
   };
 
   const handleReset = () => {
+    if (detectionTimer.current) {
+      clearTimeout(detectionTimer.current);
+    }
     setResult(null);
     setScanning(false);
     setShowCamera(false);
     setProcessing(false);
     setScanSuccess(false);
     setScannedCode(null);
+    setBottleDetected(false);
   };
 
   const getActionStyles = (action) => {
     const palette = {
-      Keep: { bg: '#22c55e', border: '#16a34a' },
-      Refill: { bg: '#FAC460', border: '#eab308' },
-      Replace: { bg: '#ef4444', border: '#dc2626' },
-      Discard: { bg: '#6b7280', border: '#4b5563' },
+      Keep: { bg: "#22c55e", border: "#16a34a" },
+      Refill: { bg: "#FAC460", border: "#eab308" },
+      Replace: { bg: "#ef4444", border: "#dc2626" },
+      Discard: { bg: "#6b7280", border: "#4b5563" },
     };
-    return palette[action] || palette['Discard'];
+    return palette[action] || palette["Discard"];
   };
 
   // Pantalla de Cámara
@@ -209,21 +237,21 @@ export default function App() {
     return (
       <View style={styles.cameraContainer}>
         <StatusBar barStyle="light-content" backgroundColor="#000000" />
-        <CameraView 
-          style={styles.camera} 
+        <CameraView
+          style={styles.camera}
           facing="back"
           ref={cameraRef}
           onBarcodeScanned={scanning ? handleBarcodeScanned : undefined}
           barcodeScannerSettings={{
             barcodeTypes: [
-              'ean13',
-              'ean8',
-              'upc_a',
-              'upc_e',
-              'code128',
-              'code39',
-              'code93',
-              'qr',
+              "ean13",
+              "ean8",
+              "upc_a",
+              "upc_e",
+              "code128",
+              "code39",
+              "code93",
+              "qr",
             ],
           }}
         >
@@ -243,85 +271,119 @@ export default function App() {
             {/* Área central con el recuadro de guía */}
             <View style={styles.cameraCenterArea}>
               <Text style={styles.cameraInstructionText}>
-                {scanSuccess 
-                  ? '✓ Código detectado correctamente'
-                  : 'Posicione el código de barras dentro del recuadro'
-                }
+                {scanSuccess && bottleDetected
+                  ? "✓✓ Código y botella detectados"
+                  : scanSuccess
+                  ? "✓ Código detectado - Verificando botella..."
+                  : bottleDetected
+                  ? "✓ Botella detectada - Escanee el código"
+                  : "Posicione el código de barras y la botella"}
               </Text>
-              
+
               {/* Recuadro de guía para la botella */}
               <View style={styles.frameContainer}>
-                <View style={[
-                  styles.frame,
-                  scanSuccess && styles.frameSuccess
-                ]}>
+                <View
+                  style={[
+                    styles.frame,
+                    scanSuccess && styles.frameSuccess,
+                    bottleDetected && styles.frameBottleDetected,
+                    scanSuccess && bottleDetected && styles.frameComplete,
+                  ]}
+                >
                   {/* Esquinas del marco */}
-                  <View style={[
-                    styles.corner, 
-                    styles.cornerTopLeft,
-                    scanSuccess && styles.cornerSuccess
-                  ]} />
-                  <View style={[
-                    styles.corner, 
-                    styles.cornerTopRight,
-                    scanSuccess && styles.cornerSuccess
-                  ]} />
-                  <View style={[
-                    styles.corner, 
-                    styles.cornerBottomLeft,
-                    scanSuccess && styles.cornerSuccess
-                  ]} />
-                  <View style={[
-                    styles.corner, 
-                    styles.cornerBottomRight,
-                    scanSuccess && styles.cornerSuccess
-                  ]} />
-                  
+                  <View
+                    style={[
+                      styles.corner,
+                      styles.cornerTopLeft,
+                      (scanSuccess || bottleDetected) && styles.cornerSuccess,
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.corner,
+                      styles.cornerTopRight,
+                      (scanSuccess || bottleDetected) && styles.cornerSuccess,
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.corner,
+                      styles.cornerBottomLeft,
+                      (scanSuccess || bottleDetected) && styles.cornerSuccess,
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.corner,
+                      styles.cornerBottomRight,
+                      (scanSuccess || bottleDetected) && styles.cornerSuccess,
+                    ]}
+                  />
+
                   {/* Icono de botella en el centro */}
                   <View style={styles.bottleIconContainer}>
                     <Text style={styles.bottleIcon}>
-                      {scanSuccess ? '✓' : '🍾'}
+                      {scanSuccess && bottleDetected
+                        ? <AntDesign name="check" size={60} color="white" />
+                        : scanSuccess
+                        ? "✓"
+                        : !bottleDetected
+                        ? "🍾"
+                        : ""}
                     </Text>
                   </View>
                 </View>
               </View>
 
+              {/* Simulación de cuadro de detección */}
+
+
               <Text style={styles.cameraHintText}>
-                {scanSuccess 
-                  ? 'Procesando información...'
-                  : 'Asegúrese de que el código de barras sea visible'
-                }
+                {scanSuccess && bottleDetected
+                  ? "¡Perfecto! Procesando..."
+                  : scanSuccess
+                  ? "Mantenga la botella en posición..."
+                  : bottleDetected
+                  ? "Asegúrese de que el código de barras sea visible"
+                  : "Enfoque el código de barras y la botella completa"}
               </Text>
             </View>
 
-            {/* Botón de captura manual (opcional) */}
+            {/* Indicador de estado */}
             <View style={styles.cameraFooter}>
-              {processing ? (
-                <View style={styles.processingContainer}>
-                  <Text style={styles.processingText}>Procesando imagen...</Text>
-                  <View style={styles.dotsContainer}>
-                    <View style={styles.dot} />
-                    <View style={styles.dot} />
-                    <View style={styles.dot} />
-                  </View>
+              <View style={styles.statusContainer}>
+                {/* Estado del código de barras */}
+                <View
+                  style={[
+                    styles.statusItem,
+                    scanSuccess && styles.statusItemSuccess,
+                  ]}
+                >
+                  <Text style={styles.statusEmoji}>
+                    {scanSuccess ? <AntDesign name="check-circle" size={24} color="black" /> : <AntDesign name="barcode" size={24} color="white" />}
+                  </Text>
+                  <Text style={styles.statusText}>Código</Text>
                 </View>
-              ) : scanning ? (
+
+                {/* Estado de la botella */}
+                <View
+                  style={[
+                    styles.statusItem,
+                    bottleDetected && styles.statusItemSuccess,
+                  ]}
+                >
+                  <Text style={styles.statusEmoji}>
+                    {bottleDetected ? <AntDesign name="check-circle" size={24} color="white" /> : "🍾"}
+                  </Text>
+                  <Text style={styles.statusText}>Botella</Text>
+                </View>
+              </View>
+
+              {scanning && (
                 <View style={styles.scanningIndicator}>
                   <View style={styles.scanningDot} />
-                  <Text style={styles.scanningText}>Buscando código...</Text>
+                  <Text style={styles.scanningText}>Escaneando...</Text>
                 </View>
-              ) : scanSuccess ? (
-                <View style={styles.successIndicator}>
-                  <Text style={styles.successText}>✓ Código escaneado</Text>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.captureButton}
-                  onPress={handleTakePhoto}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.captureButtonInner} />
-                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -342,7 +404,10 @@ export default function App() {
           <View
             style={[
               styles.actionCard,
-              { backgroundColor: actionStyles.bg, borderColor: actionStyles.border },
+              {
+                backgroundColor: actionStyles.bg,
+                borderColor: actionStyles.border,
+              },
             ]}
           >
             <Text style={styles.actionText}>{result.action.toUpperCase()}</Text>
@@ -353,11 +418,11 @@ export default function App() {
           <View style={styles.dataCard}>
             <Text style={styles.dataTitle}>📊 Datos Registrados:</Text>
             {[
-              { label: 'Producto', value: result.producto },
-              { label: 'Aerolínea', value: result.aerolinea },
-              { label: 'Sello', value: result.sello },
-              { label: 'Nivel', value: result.nivel },
-              { label: 'Condición', value: result.condicion },
+              { label: "Producto", value: result.producto },
+              { label: "Aerolínea", value: result.aerolinea },
+              { label: "Sello", value: result.sello },
+              { label: "Nivel", value: result.nivel },
+              { label: "Condición", value: result.condicion },
             ].map((item, idx) => (
               <View key={idx} style={styles.dataRow}>
                 <Text style={styles.dataLabel}>{item.label}:</Text>
@@ -380,7 +445,9 @@ export default function App() {
             onPress={handleReset}
             activeOpacity={0.8}
           >
-            <Text style={styles.scanAgainButtonText}>🔄 ESCANEAR OTRA BOTELLA</Text>
+            <Text style={styles.scanAgainButtonText}>
+              🔄 ESCANEAR OTRA BOTELLA
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -396,15 +463,20 @@ export default function App() {
         <View style={styles.header}>
           <Text style={styles.emoji}>📦</Text>
           <Text style={styles.headerTitle}>GateCheck</Text>
-          <Text style={styles.headerSubtitle}>Manejo de Botellas de Alcohol</Text>
+          <Text style={styles.headerSubtitle}>
+            Manejo de Botellas de Alcohol
+          </Text>
         </View>
 
         {/* Área de Escaneo */}
         <View style={styles.scanCard}>
-          <Text style={styles.scanEmoji}>📷</Text>
+          <Image
+            source={require("../../images/phone.png")}
+            style={{ width: 100, height: 100, marginBottom: 20 }}
+          />
           <Text style={styles.scanTitle}>Escanear Botella</Text>
           <Text style={styles.scanSubtitle}>
-            Posicione el código de barras frente a la cámara
+            Detecta automáticamente código de barras y botella
           </Text>
 
           {/* Botón de Escaneo Grande */}
@@ -413,7 +485,10 @@ export default function App() {
             onPress={handleInitiateScan}
             activeOpacity={0.8}
           >
-            <Text style={styles.scanButtonText}>📷 INICIAR ESCANEO</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+              <AntDesign name="scan" size={20} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.scanButtonText}>INICIAR ESCANEO</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
